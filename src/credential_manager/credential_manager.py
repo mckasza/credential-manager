@@ -67,7 +67,6 @@ def verify_master_password(master_password, credential_store):
   else:
     return True
 
-
 def create_handler(args, console):
   if not args.file:
     file_path_input = input('Enter file path: ')
@@ -170,6 +169,34 @@ def add_handler(args, console):
   save_credential_store(file_path, credential_store)
   console.print(f'Credential \'{name}\' was stored successfully')
 
+def delete_handler(args, console):
+  file_path = get_file_path(args)
+  credential_store = get_credential_store(file_path)
+
+  index = args.index-1
+  credential_to_delete = credential_store['credentials'][index]
+
+  confirmation_message = f'Confirm deletion of credential \'{credential_to_delete["name"]}\' at index {index+1} [Y/n]: '
+  confirm_input = console.input(confirmation_message)
+  valid_input = False
+  deletion_confirmed = False
+  while not valid_input:
+    if confirm_input == 'Y':
+      valid_input = True
+      deletion_confirmed = True
+    elif confirm_input == 'n':
+      valid_input = True
+    else:
+      console.print(f'Invalid input \'{confirm_input}\'')
+      confirm_input = console.input(confirmation_message)
+
+  if deletion_confirmed:
+    credential_store['credentials'].remove(credential_to_delete)
+    save_credential_store(file_path, credential_store)
+    console.print('Credential was deleted successfully')
+  else:
+    console.print('Exiting without performing credential deletion')
+
 def show_password_handler(args, console):
   file_path = get_file_path(args)
   credential_store = get_credential_store(file_path)
@@ -209,6 +236,10 @@ def main():
 
   list_parser = subparsers.add_parser('list')
   list_parser.set_defaults(func=list_handler)
+
+  delete_parser = subparsers.add_parser('delete')
+  delete_parser.add_argument('-i', '--index', required=True, type=int)
+  delete_parser.set_defaults(func=delete_handler)
 
   show_password_parser = subparsers.add_parser('show_password')
   show_password_parser.add_argument('-i', '--index', required=True, type=int)
