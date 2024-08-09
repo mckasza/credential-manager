@@ -173,8 +173,22 @@ def delete_handler(args, console):
   file_path = get_file_path(args)
   credential_store = get_credential_store(file_path)
 
+  if len(credential_store['credentials']) == 0:
+    print('There are no credentials to delete')
+
   index = args.index-1
-  credential_to_delete = credential_store['credentials'][index]
+
+  try:
+    if index < 0:
+      raise IndexError
+    credential_to_delete = credential_store['credentials'][index]
+  except IndexError:
+    error_console = Console(stderr=True)
+    if len(credential_store['credentials']) == 1:
+      error_console.print('Error: Index must be 1 since the credential store only contains a single credential')
+    else:
+      error_console.print(f'Error: Index must be between 1 and {len(credential_store["credentials"])}')
+    return
 
   confirmation_message = f'Confirm deletion of credential \'{credential_to_delete["name"]}\' at index {index+1} [Y/n]: '
   confirm_input = console.input(confirmation_message)
